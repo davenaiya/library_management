@@ -24,15 +24,36 @@ The app supports library members, librarians, and admins. Members can find books
 
 ## Screenshots
 
-(![Guest dashboard](image-1.png))
+### Guest book catalog
 
-(![Login](image-2.png))
+![Guest book catalog](image-1.png)
 
-![Book catalog](image-3.png)
+### Login
+
+![Login page](image-2.png)
+
+### Book collection
+
+![Book collection](image-3.png)
+
+### Admin dashboard
+
 ![Admin dashboard](image-4.png)
-![Books](image-5.png)
+
+### Book management
+
+![Book management](image-5.png)
+
+### Admin workspace
+
 ![Admin workspace](image-6.png)
+
+### Member books
+
 ![Member books](image-7.png)
+
+### Librarian dashboard
+
 ![Librarian dashboard](image-8.png)
 
 ## Project Structure
@@ -52,7 +73,7 @@ library_management/
 │       ├── pages/
 │       ├── routes/
 │       └── services/
-├── screenshots/
+├── image-1.png ... image-8.png
 └── README.md
 ```
 
