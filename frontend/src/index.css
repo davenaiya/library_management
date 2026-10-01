@@ -50,7 +50,8 @@ body {
 }
 
 .dashboard-shell {
-  @apply min-h-screen md:grid md:grid-cols-[280px_1fr];
+  @apply min-h-screen md:grid;
+  grid-template-columns: var(--sidebar-width, 280px) minmax(0, 1fr);
   background-color: #e6d5c3;
 }
 

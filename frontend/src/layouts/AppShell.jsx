@@ -1,9 +1,15 @@
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 
 function AppShell({ title, subtitle, actions, children, centerTitle = false, eyebrow = "Library Workspace" }) {
+  const [desktopNavExpanded, setDesktopNavExpanded] = useState(true);
+
   return (
-    <div className="dashboard-shell">
-      <Navbar />
+    <div className="dashboard-shell" style={{ "--sidebar-width": desktopNavExpanded ? "280px" : "88px" }}>
+      <Navbar
+        desktopExpanded={desktopNavExpanded}
+        onToggleDesktop={() => setDesktopNavExpanded((expanded) => !expanded)}
+      />
       <div className="page-shell min-w-0">
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           <div

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const roleLinks = {
@@ -30,11 +30,27 @@ const roleLinks = {
   ]
 };
 
-function Navbar() {
+function Navbar({ desktopExpanded = true, onToggleDesktop = () => {} }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const links = roleLinks[user?.role || "guest"] || [];
+
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [open]);
 
   const handleLogout = async () => {
     await logout();
@@ -105,36 +121,70 @@ function Navbar() {
     )
   };
 
-  const sidebarContent = (
+  const renderSidebarContent = (compact = false) => (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 px-5 py-6">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-lg font-bold text-white ring-1 ring-white/20 backdrop-blur-sm">
-          LM
+      <div className={`flex items-center py-6 ${compact ? "justify-between gap-1 px-1" : "justify-between gap-3 px-5"}`}>
+        <div className={`flex items-center ${compact ? "" : "gap-3"}`}>
+          <div className={`${compact ? "h-9 w-9 text-sm" : "h-12 w-12 text-lg"} flex shrink-0 items-center justify-center rounded-2xl bg-white/15 font-bold text-white ring-1 ring-white/20 backdrop-blur-sm`}>
+            LM
+          </div>
+          {!compact && (
+            <div>
+              <p className="text-base font-semibold text-white">Library System</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-[#F5EDE6]">Dashboard</p>
+            </div>
+          )}
         </div>
-        <div>
-          <p className="text-base font-semibold text-white">Library System</p>
-          <p className="text-xs uppercase tracking-[0.22em] text-[#F5EDE6]">Dashboard</p>
-        </div>
+        <button
+          type="button"
+          className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/70 md:inline-flex"
+          onClick={onToggleDesktop}
+          aria-label={desktopExpanded ? "Collapse sidebar" : "Expand sidebar"}
+          title={desktopExpanded ? "Collapse sidebar" : "Expand sidebar"}
+          aria-expanded={desktopExpanded}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d={desktopExpanded ? "m14 6-6 6 6 6" : "m10 6 6 6-6 6"} />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/70 md:hidden"
+          onClick={() => setOpen(false)}
+          aria-label="Close navigation menu"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
       </div>
 
-      <div className="px-5">
-        <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300">
-          <p className="text-sm font-semibold text-white">{user?.name || "Workspace"}</p>
-          <p className="mt-1 break-all text-xs text-[#F5EDE6]">{user?.email || "Browse as a visitor"}</p>
-          <span className="mt-3 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold capitalize text-white ring-1 ring-white/10">
-            {user?.role || "guest"}
-          </span>
-        </div>
+      <div className={compact ? "flex justify-center px-2" : "px-5"}>
+        {compact ? (
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-sm font-semibold uppercase text-white" title={user?.name || "Workspace"}>
+            {(user?.name || "Guest").charAt(0)}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300">
+            <p className="text-sm font-semibold text-white">{user?.name || "Workspace"}</p>
+            <p className="mt-1 break-all text-xs text-[#F5EDE6]">{user?.email || "Browse as a visitor"}</p>
+            <span className="mt-3 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold capitalize text-white ring-1 ring-white/10">
+              {user?.role || "guest"}
+            </span>
+          </div>
+        )}
       </div>
 
-      <nav className="mt-6 flex-1 space-y-1 px-4">
+      <nav className={`mt-6 flex-1 space-y-1 ${compact ? "px-3" : "px-4"}`} aria-label="Main navigation">
         {links.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
             onClick={() => setOpen(false)}
+            title={compact ? link.label : undefined}
+            aria-label={link.label}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg border-l-4 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+              `flex items-center rounded-lg border-l-4 py-3 text-sm font-medium transition-all duration-200 ${compact ? "justify-center px-2" : "gap-3 px-4"} ${
                 isActive
                   ? "border-[#8B5E3C] bg-white text-[#8B5E3C] shadow-sm"
                   : "border-transparent text-white hover:bg-[#F5EDE6] hover:text-[#5C3A21]"
@@ -144,19 +194,24 @@ function Navbar() {
             <span className="rounded-lg bg-white/15 p-2">
               {navIcons[link.label] || navIcons.Dashboard}
             </span>
-            {link.label}
+            {!compact && <span>{link.label}</span>}
           </NavLink>
         ))}
       </nav>
 
       {user ? (
-        <div className="border-t border-white/10 p-4">
+        <div className={`border-t border-white/10 ${compact ? "p-3" : "p-4"}`}>
           <button
             type="button"
-            className="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#F5EDE6] hover:text-[#5C3A21]"
+            className={`inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/10 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-[#F5EDE6] hover:text-[#5C3A21] ${compact ? "px-2" : "gap-2 px-4"}`}
             onClick={handleLogout}
+            aria-label="Logout"
+            title={compact ? "Logout" : undefined}
           >
-            Logout
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 17l5-5m0 0-5-5m5 5H4m12-8h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
+            </svg>
+            {!compact && "Logout"}
           </button>
         </div>
       ) : null}
@@ -180,6 +235,9 @@ function Navbar() {
             type="button"
             className="inline-flex items-center gap-2 rounded-xl border border-[#8B5E3C]/15 bg-white px-3 py-2 text-sm font-medium text-[#5C3A21] transition-all duration-300 hover:bg-[#F5EDE6]"
             onClick={() => setOpen((current) => !current)}
+            aria-expanded={open}
+            aria-controls="mobile-navigation"
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
           >
             {menuIcon}
             {open ? "Close" : "Menu"}
@@ -190,16 +248,18 @@ function Navbar() {
       {open ? (
         <div className="fixed inset-0 z-50 bg-[#5C3A21]/25 md:hidden" onClick={() => setOpen(false)}>
           <aside
+            id="mobile-navigation"
             className="h-full w-[280px] border-r border-white/10 bg-gradient-to-b from-[#5C3A21] to-[#8B5E3C] shadow-lg"
             onClick={(event) => event.stopPropagation()}
+            aria-label="Mobile navigation"
           >
-            {sidebarContent}
+            {renderSidebarContent()}
           </aside>
         </div>
       ) : null}
 
-      <aside className="hidden border-r border-white/10 bg-gradient-to-b from-[#5C3A21] to-[#8B5E3C] md:flex md:min-h-screen md:flex-col">
-        {sidebarContent}
+      <aside className={`hidden min-w-0 border-r border-white/10 bg-gradient-to-b from-[#5C3A21] to-[#8B5E3C] md:flex md:min-h-screen md:flex-col ${desktopExpanded ? "" : "items-center"}`}>
+        {renderSidebarContent(!desktopExpanded)}
       </aside>
     </>
   );
