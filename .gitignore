@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+!.env_example
+.env_production
+dist/
+.dist/
+*.log
+backend/uploads/
